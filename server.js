@@ -12,7 +12,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Configuração de sessão FIXADA
 app.use(session({
-    name: 'fornecedor.sid',
+    name: 'admin',
     secret: 'pqp123',
     resave: true,  // Alterado para true para evitar perda de sessão
     saveUninitialized: false,
