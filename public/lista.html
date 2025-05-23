@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fornecedores Cadastrados</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="/index.html">Home</a></li>
+            <li><a href="/cadastro.html">Cadastrar Fornecedor</a></li>
+            <li><a href="/lista.html">Fornecedores Cadastrados</a></li>
+            <li><button id="logout">Logout</button></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Fornecedores Cadastrados</h1>
+        <table id="fornecedoresTable">
+            <thead>
+                <tr>
+                    <th>CNPJ</th>
+                    <th>Razão Social</th>
+                    <th>Nome Fantasia</th>
+                    <th>Cidade/UF</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody id="fornecedoresTableBody"></tbody>
+        </table>
+    </div>
+
+    <script src="lista.js"></script>
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('login')) {
+      const messageDiv = document.createElement('div');
+      messageDiv.id = 'system-message';
+      messageDiv.textContent = 'Logado com sucesso!';
+      messageDiv.className = 'success';
+      document.body.appendChild(messageDiv);
+      
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+      
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
+</script>
+</html>

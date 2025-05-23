@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Fornecedor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="menu">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/cadastro">Cadastrar Fornecedor</a></li>
+            <li><a href="/lista">Fornecedores Cadastrados</a></li>
+            <li><button id="logout">Logout</button></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <h1>Cadastro de Fornecedor</h1>
+        <form id="fornecedorForm">
+            <div class="form-group">
+                <label for="cnpj">CNPJ:</label>
+                <input type="text" id="cnpj" name="cnpj" placeholder="00.000.000/0000-00" required>
+                <span class="error" id="cnpjError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="razaoSocial">Razão Social:</label>
+                <input type="text" id="razaoSocial" name="razaoSocial" required>
+                <span class="error" id="razaoSocialError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="nomeFantasia">Nome Fantasia:</label>
+                <input type="text" id="nomeFantasia" name="nomeFantasia" required>
+                <span class="error" id="nomeFantasiaError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="endereco">Endereço:</label>
+                <input type="text" id="endereco" name="endereco" required>
+                <span class="error" id="enderecoError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="cidade">Cidade:</label>
+                <input type="text" id="cidade" name="cidade" required>
+                <span class="error" id="cidadeError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="uf">UF:</label>
+                <input type="text" id="uf" name="uf" maxlength="2" placeholder="SP" required>
+                <span class="error" id="ufError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="cep">CEP:</label>
+                <input type="text" id="cep" name="cep" placeholder="00000-000" required>
+                <span class="error" id="cepError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="exemplo@dominio.com" required>
+                <span class="error" id="emailError"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="telefone">Telefone:</label>
+                <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
+                <span class="error" id="telefoneError"></span>
+            </div>
+
+            <button type="submit">Cadastrar</button>
+        </form>
+
+        <div id="message"></div>
+
+        <div id="listaFornecedores">
+            <h2>Fornecedores Cadastrados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>CNPJ</th>
+                        <th>Razão Social</th>
+                        <th>Nome Fantasia</th>
+                        <th>Cidade/UF</th>
+                    </tr>
+                </thead>
+                <tbody id="fornecedoresTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="cadastro.js"></script>
+</body>
+    <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('login')) {
+      const messageDiv = document.createElement('div');
+      messageDiv.id = 'system-message';
+      messageDiv.textContent = 'Logado com sucesso!';
+      messageDiv.className = 'success';
+      document.body.appendChild(messageDiv);
+      
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+      
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  });
+</script>
+</html>
