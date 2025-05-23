@@ -244,3 +244,27 @@ async function logout() {
     console.error('Erro ao fazer logout:', error);
   }
 }
+async function verifyAuth() {
+    try {
+        const response = await fetch('/api/check-auth', {
+            credentials: 'include'
+        });
+        const data = await response.json();
+        
+        if (!data.authenticated) {
+            window.location.href = '/login.html';
+            return false;
+        }
+        return true;
+    } catch (error) {
+        console.error('Erro ao verificar autenticação:', error);
+        window.location.href = '/login.html';
+        return false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    const isAuthenticated = await verifyAuth();
+    if (!isAuthenticated) return;
+    
+});
