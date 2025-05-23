@@ -10,24 +10,27 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração de sessão reforçada
+// Configuração de sessão FIXADA
 app.use(session({
     name: 'fornecedor.sid',
-    secret: 'sua-chave-secreta-muito-segura-aqui@123!',
-    resave: false,
+    secret: 'pqp123',
+    resave: true,  // Alterado para true para evitar perda de sessão
     saveUninitialized: false,
     cookie: {
-        secure: false, // Em produção deve ser true (HTTPS)
+        secure: false, // false em desenvolvimento, true em produção com HTTPS
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax', // Alterado para melhor compatibilidade
         maxAge: 24 * 60 * 60 * 1000 // 24 horas
     }
 }));
 
-// Middleware para verificar sessão
+// Middleware de verificação de sessão
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-    console.log('Estado da sessão:', req.session);
+    console.log('Estado da sessão:', {
+        loggedIn: req.session.loggedIn,
+        user: req.session.user
+    });
     next();
 });
 
@@ -38,78 +41,93 @@ const usuarios = [
     { username: 'Renato', password: 'god123' }
 ];
 
-// Middleware de autenticação
+// Middleware de autenticação ATUALIZADO
 function requireLogin(req, res, next) {
     if (req.session.loggedIn) {
+        console.log('Acesso autorizado para:', req.session.user.username);
         next();
     } else {
-        // Retorna JSON para APIs, redireciona para páginas
-        if (req.path.startsWith('/api')) {
-            res.status(401).json({ error: 'Não autorizado' });
-        } else {
+        console.log('Acesso negado - redirecionando para login');
+        if (req.accepts('html')) {
             res.redirect('/login.html');
+        } else {
+            res.status(401).json({ error: 'Não autorizado' });
         }
     }
 }
 
 // Rotas públicas
-app.get(['/', '/login'], (req, res) => {
-    const page = req.path === '/' ? 'index.html' : 'login.html';
-    res.sendFile(path.join(__dirname, 'public', page));
+app.get(['/', '/login.html'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // Rotas protegidas
-app.get(['/cadastro', '/lista'], requireLogin, (req, res) => {
-    const page = req.path.substring(1) + '.html';
+app.get(['/cadastro.html', '/lista.html'], requireLogin, (req, res) => {
+    const page = req.path.substring(1);
     res.sendFile(path.join(__dirname, 'public', page));
 });
 
-// API de autenticação
+// API de autenticação REVISADA
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     
     if (!username || !password) {
-        return res.status(400).json({ error: 'Usuário e senha são obrigatórios' });
+        return res.status(400).json({ error: 'Credenciais inválidas' });
     }
 
     const usuario = usuarios.find(u => u.username === username && u.password === password);
     
     if (usuario) {
-        req.session.regenerate(err => {
-            if (err) {
-                console.error('Erro ao regenerar sessão:', err);
-                return res.status(500).json({ error: 'Erro no servidor' });
-            }
-            
-            req.session.loggedIn = true;
-            req.session.user = { username };
-            
-            res.json({ 
-                success: true,
-                user: { username }
-            });
+        req.session.loggedIn = true;
+        req.session.user = { 
+            username: usuario.username,
+            loginTime: new Date()
+        };
+        
+        console.log('Login bem-sucedido para:', usuario.username);
+        
+        return res.json({ 
+            success: true,
+            redirect: '/cadastro.html'
         });
     } else {
-        res.status(401).json({ error: 'Credenciais inválidas' });
+        console.log('Tentativa de login falhou para:', username);
+        return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 });
 
+// API de logout CONSOLIDADA
 app.post('/api/logout', (req, res) => {
-    req.session.destroy(err => {
+    req.session.destroy((err) => {
         if (err) {
             console.error('Erro ao destruir sessão:', err);
-            return res.status(500).json({ error: 'Erro ao fazer logout' });
+            return res.status(500).json({ error: 'Erro no servidor' });
         }
         
         res.clearCookie('fornecedor.sid');
-        res.json({ success: true });
+        console.log('Logout realizado com sucesso');
+        return res.json({ 
+            success: true,
+            redirect: '/login.html'
+        });
     });
 });
 
-// API de fornecedores (protegida)
+// API de verificação de autenticação
+app.get('/api/check-auth', (req, res) => {
+    res.json({
+        authenticated: !!req.session.loggedIn,
+        user: req.session.user || null
+    });
+});
+
+// Rotas de API protegidas
 app.use('/api/fornecedores', requireLogin);
-app.post('/api/fornecedores', (req, res) => {
-    // ... (mantenha sua lógica existente de validação e cadastro)
+app.get('/api/fornecedores', (req, res) => {
+    res.json({
+        success: true,
+        data: fornecedores
+    });
 });
 
 // Inicialização do servidor
@@ -117,4 +135,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Acesse: http://localhost:${PORT}`);
+    console.log('Usuários disponíveis:', usuarios.map(u => u.username));
 });
