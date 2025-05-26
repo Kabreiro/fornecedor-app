@@ -78,12 +78,10 @@ document.addEventListener('DOMContentLoaded', async function () {
   const isAuthenticated = await checkAuth();
   if (!isAuthenticated) return;
 
-  // Configura logout
   const logoutBtn = document.getElementById('logout');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', logout);
   }
 
-  // Carrega fornecedores
   await loadFornecedores();
 });

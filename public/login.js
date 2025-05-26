@@ -1,48 +1,49 @@
-document.addEventListener('DOMContentLoaded', function () {
-  const loginForm = document.getElementById('loginForm');
-  const messageDiv = document.getElementById('message');
+async function login(event) {
+  event.preventDefault();
 
-  if (!loginForm || loginForm.dataset.handlerAttached === "true") return;
+  clearMessage();
 
-  loginForm.dataset.handlerAttached = "true"; // Evita múltiplos binds
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
 
-  loginForm.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    clearMessage();
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+      credentials: 'include'
+    });
 
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+    const data = await response.json();
 
-    try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        window.location.href = '/cadastro.html?login=success';
-      } else {
-        showMessage(data.error || 'Credenciais inválidas', 'error');
-      }
-    } catch (error) {
-      console.error('Erro:', error);
-      showMessage('Erro ao conectar com o servidor', 'error');
+    if (data.success) {
+      window.location.href = '/cadastro.html?login=success';
+    } else {
+      showMessage(data.error || 'Credenciais inválidas', 'error');
     }
-  });
-
-  function showMessage(text, type) {
-    messageDiv.textContent = text;
-    messageDiv.className = type;
-    messageDiv.style.display = 'block';
+  } catch (error) {
+    console.error('Erro:', error);
+    showMessage('Erro ao conectar com o servidor', 'error');
   }
+}
 
-  function clearMessage() {
-    messageDiv.textContent = '';
-    messageDiv.className = '';
-    messageDiv.style.display = 'none';
+function showMessage(text, type) {
+  const messageDiv = document.getElementById('message');
+  messageDiv.textContent = text;
+  messageDiv.className = type;
+  messageDiv.style.display = 'block';
+}
+
+function clearMessage() {
+  const messageDiv = document.getElementById('message');
+  messageDiv.textContent = '';
+  messageDiv.className = '';
+  messageDiv.style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  const form = document.getElementById('loginForm');
+  if (form) {
+    form.addEventListener('submit', login);
   }
 });
