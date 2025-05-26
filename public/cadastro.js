@@ -34,10 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
       messageDiv.style.color = 'green';
       form.reset();
 
+      if (window.loadFornecedores) await window.loadFornecedores();
     } catch (error) {
       messageDiv.textContent = error.message;
       messageDiv.style.color = 'red';
-      console.error('Erro ao cadastrar fornecedor:', error);
     }
   });
 });
