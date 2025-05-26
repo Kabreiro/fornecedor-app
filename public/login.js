@@ -1,8 +1,12 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const loginForm = document.getElementById('loginForm');
   const messageDiv = document.getElementById('message');
 
-  loginForm.addEventListener('submit', async function(e) {
+  if (!loginForm || loginForm.dataset.handlerAttached === "true") return;
+
+  loginForm.dataset.handlerAttached = "true"; // Evita múltiplos binds
+
+  loginForm.addEventListener('submit', async function (e) {
     e.preventDefault();
     clearMessage();
 
@@ -20,7 +24,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const data = await response.json();
 
       if (data.success) {
-        // Redireciona com mensagem de sucesso
         window.location.href = '/cadastro.html?login=success';
       } else {
         showMessage(data.error || 'Credenciais inválidas', 'error');

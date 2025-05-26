@@ -4,7 +4,7 @@ async function checkAuth() {
       credentials: 'include'
     });
     const data = await response.json();
-    
+
     if (!data.authenticated) {
       window.location.href = '/login.html';
       return false;
@@ -22,9 +22,9 @@ async function loadFornecedores() {
     const response = await fetch('/api/fornecedores', {
       credentials: 'include'
     });
-    
+
     if (!response.ok) throw new Error('Erro ao carregar fornecedores');
-    
+
     const { data } = await response.json();
     renderFornecedores(data);
   } catch (error) {
@@ -35,8 +35,13 @@ async function loadFornecedores() {
 
 function renderFornecedores(fornecedores) {
   const tbody = document.getElementById('fornecedoresTableBody');
+  if (!tbody) {
+    console.warn('Elemento #fornecedoresTableBody não encontrado.');
+    return;
+  }
+
   tbody.innerHTML = '';
-  
+
   fornecedores.forEach(fornecedor => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
@@ -61,58 +66,24 @@ async function logout() {
       credentials: 'include'
     });
     const data = await response.json();
-    if (data.success) window.location.href = '/login.html';
-  } catch (error) {
-    console.error('Erro ao fazer logout:', error);
-  }
-}
-
-document.addEventListener('DOMContentLoaded', async function() {
-  const isAuthenticated = await checkAuth();
-  if (!isAuthenticated) return;
-
-  // Configura logout
-  document.getElementById('logout').addEventListener('click', logout);
-
-  // Carrega fornecedores
-  await loadFornecedores();
-});
-async function logout() {
-  try {
-    const response = await fetch('/api/logout', {
-      method: 'POST',
-      credentials: 'include'
-    });
-    const data = await response.json();
     if (data.success) {
-        
       window.location.href = '/login.html?logout=success';
     }
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
   }
 }
-async function verifyAuth() {
-    try {
-        const response = await fetch('/api/check-auth', {
-            credentials: 'include'
-        });
-        const data = await response.json();
-        
-        if (!data.authenticated) {
-            window.location.href = '/login.html';
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        window.location.href = '/login.html';
-        return false;
-    }
-}
 
-document.addEventListener('DOMContentLoaded', async function() {
-    const isAuthenticated = await verifyAuth();
-    if (!isAuthenticated) return;
-    
+document.addEventListener('DOMContentLoaded', async function () {
+  const isAuthenticated = await checkAuth();
+  if (!isAuthenticated) return;
+
+  // Configura logout
+  const logoutBtn = document.getElementById('logout');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
+  }
+
+  // Carrega fornecedores
+  await loadFornecedores();
 });
