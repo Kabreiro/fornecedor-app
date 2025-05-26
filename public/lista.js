@@ -3,15 +3,22 @@ async function checkAuth() {
     const response = await fetch('/api/check-auth', {
       credentials: 'include'
     });
+    if (!response.ok) throw new Error('Erro na verificação');
+
     const data = await response.json();
 
     if (!data.authenticated) {
-      window.location.href = '/login.html';
+      if (!window.location.href.includes('login.html')) {
+        window.location.href = '/login.html';
+      }
       return false;
     }
     return true;
   } catch (error) {
-    window.location.href = '/login.html';
+    console.error('Erro ao verificar autenticação:', error);
+    if (!window.location.href.includes('login.html')) {
+      window.location.href = '/login.html';
+    }
     return false;
   }
 }
@@ -22,9 +29,11 @@ async function loadFornecedores() {
       credentials: 'include'
     });
     if (!response.ok) throw new Error('Erro ao carregar fornecedores');
+
     const { data } = await response.json();
     renderFornecedores(data);
-  } catch {
+  } catch (error) {
+    console.error('Erro:', error);
     alert('Erro ao carregar fornecedores');
   }
 }
@@ -58,15 +67,17 @@ async function logout() {
     });
     const data = await response.json();
     if (data.success) window.location.href = '/login.html?logout=success';
-  } catch {}
+  } catch (error) {
+    console.error('Erro ao fazer logout:', error);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   const isAuthenticated = await checkAuth();
   if (!isAuthenticated) return;
+
   const logoutBtn = document.getElementById('logout');
   if (logoutBtn) logoutBtn.addEventListener('click', logout);
+
   await loadFornecedores();
 });
-
-window.loadFornecedores = loadFornecedores;
