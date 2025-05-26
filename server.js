@@ -5,11 +5,10 @@ const session = require('express-session');
 
 const app = express();
 
-// Configurações
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração de sessão (moved before static)
 app.use(session({
     name: 'admin',
     secret: 'pqp123',
@@ -23,9 +22,6 @@ app.use(session({
     }
 }));
 
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Middleware de verificação de sessão
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
     console.log('Estado da sessão:', {
@@ -35,14 +31,12 @@ app.use((req, res, next) => {
     next();
 });
 
-// Banco de dados em memória
 let fornecedores = [];
 const usuarios = [
     { username: 'admin', password: 'admin123' },
     { username: 'Renato', password: 'god123' }
 ];
 
-// Middleware de autenticação
 function requireLogin(req, res, next) {
     if (req.session.loggedIn) {
         console.log('Acesso autorizado para:', req.session.user.username);
@@ -57,18 +51,15 @@ function requireLogin(req, res, next) {
     }
 }
 
-// Rotas públicas
 app.get(['/', '/login.html'], (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Rotas protegidas (páginas)
 app.get(['/cadastro.html', '/lista.html'], requireLogin, (req, res) => {
     const page = req.path.substring(1);
     res.sendFile(path.join(__dirname, 'public', page));
 });
 
-// API de login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
@@ -84,7 +75,6 @@ app.post('/api/login', (req, res) => {
             username: usuario.username,
             loginTime: new Date()
         };
-
         console.log('Login bem-sucedido para:', usuario.username);
         return res.json({ success: true, redirect: '/cadastro.html' });
     } else {
@@ -93,7 +83,6 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// API de logout
 app.post('/api/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -107,7 +96,6 @@ app.post('/api/logout', (req, res) => {
     });
 });
 
-// Verificação de autenticação
 app.get('/api/check-auth', (req, res) => {
     res.json({
         authenticated: !!req.session.loggedIn,
@@ -115,12 +103,23 @@ app.get('/api/check-auth', (req, res) => {
     });
 });
 
-// API de fornecedores (rota protegida)
 app.get('/api/fornecedores', requireLogin, (req, res) => {
     res.json({ success: true, data: fornecedores });
 });
 
-// Inicialização do servidor
+app.post('/api/fornecedores', requireLogin, (req, res) => {
+    const fornecedor = req.body;
+
+    if (!fornecedor.cnpj || !fornecedor.razaoSocial) {
+        return res.status(400).json({ error: 'Campos obrigatórios faltando' });
+    }
+
+    fornecedores.push(fornecedor);
+
+    console.log('Fornecedor cadastrado:', fornecedor);
+    res.json({ success: true });
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
