@@ -10,17 +10,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração de sessão FIXADA
+// Configuração de sessão
 app.use(session({
     name: 'admin',
     secret: 'pqp123',
-    resave: true,  // Alterado para true para evitar perda de sessão
+    resave: true,
     saveUninitialized: false,
     cookie: {
-        secure: false, // false em desenvolvimento, true em produção com HTTPS
+        secure: false,
         httpOnly: true,
-        sameSite: 'lax', // Alterado para melhor compatibilidade
-        maxAge: 24 * 60 * 60 * 1000 // 24 horas
+        sameSite: 'lax',
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
 
@@ -41,7 +41,7 @@ const usuarios = [
     { username: 'Renato', password: 'god123' }
 ];
 
-// Middleware de autenticação ATUALIZADO
+// Middleware de autenticação
 function requireLogin(req, res, next) {
     if (req.session.loggedIn) {
         console.log('Acesso autorizado para:', req.session.user.username);
@@ -61,59 +61,52 @@ app.get(['/', '/login.html'], (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Rotas protegidas
+// Rotas protegidas (páginas)
 app.get(['/cadastro.html', '/lista.html'], requireLogin, (req, res) => {
     const page = req.path.substring(1);
     res.sendFile(path.join(__dirname, 'public', page));
 });
 
-// API de autenticação REVISADA
+// API de login
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
-    
+
     if (!username || !password) {
         return res.status(400).json({ error: 'Credenciais inválidas' });
     }
 
     const usuario = usuarios.find(u => u.username === username && u.password === password);
-    
+
     if (usuario) {
         req.session.loggedIn = true;
-        req.session.user = { 
+        req.session.user = {
             username: usuario.username,
             loginTime: new Date()
         };
-        
+
         console.log('Login bem-sucedido para:', usuario.username);
-        
-        return res.json({ 
-            success: true,
-            redirect: '/cadastro.html'
-        });
+        return res.json({ success: true, redirect: '/cadastro.html' });
     } else {
         console.log('Tentativa de login falhou para:', username);
         return res.status(401).json({ error: 'Credenciais inválidas' });
     }
 });
 
-// API de logout CONSOLIDADA
+// API de logout
 app.post('/api/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
             console.error('Erro ao destruir sessão:', err);
             return res.status(500).json({ error: 'Erro no servidor' });
         }
-        
-        res.clearCookie('fornecedor.sid');
+
+        res.clearCookie('admin');
         console.log('Logout realizado com sucesso');
-        return res.json({ 
-            success: true,
-            redirect: '/login.html'
-        });
+        return res.json({ success: true, redirect: '/login.html' });
     });
 });
 
-// API de verificação de autenticação
+// Verificação de autenticação
 app.get('/api/check-auth', (req, res) => {
     res.json({
         authenticated: !!req.session.loggedIn,
@@ -121,13 +114,9 @@ app.get('/api/check-auth', (req, res) => {
     });
 });
 
-// Rotas de API protegidas
-app.use('/api/fornecedores', requireLogin);
-app.get('/api/fornecedores', (req, res) => {
-    res.json({
-        success: true,
-        data: fornecedores
-    });
+// API de fornecedores (rota protegida)
+app.get('/api/fornecedores', requireLogin, (req, res) => {
+    res.json({ success: true, data: fornecedores });
 });
 
 // Inicialização do servidor
