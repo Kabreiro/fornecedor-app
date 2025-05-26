@@ -8,9 +8,8 @@ const app = express();
 // Configurações
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Configuração de sessão
+// Configuração de sessão (moved before static)
 app.use(session({
     name: 'admin',
     secret: 'pqp123',
@@ -23,6 +22,8 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000
     }
 }));
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware de verificação de sessão
 app.use((req, res, next) => {

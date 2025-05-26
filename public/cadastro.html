@@ -97,7 +97,22 @@
   <script src="cadastro.js"></script>
 
   <script>
-   
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('login')) {
+        const messageDiv = document.createElement('div');
+        messageDiv.id = 'system-message';
+        messageDiv.textContent = 'Logado com sucesso!';
+        messageDiv.className = 'success';
+        document.body.appendChild(messageDiv);
+
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+        }, 5000);
+
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    });
   </script>
 </body>
 </html>
